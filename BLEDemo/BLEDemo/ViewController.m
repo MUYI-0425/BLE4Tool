@@ -3,7 +3,7 @@
 //  BLEDemo
 //
 //  Created by apple on 2018/6/21.
-//  Copyright © 2018年 孙晓东. All rights reserved.
+//  Copyright © 2018年 SXD. All rights reserved.
 //
 
 #import "ViewController.h"
@@ -28,15 +28,15 @@
     __weak typeof(self) ws = self;
     [self.xdBle scanBleDeviceWithFilter:nil delayTime:5 bleState:^(XD_BLE_STATE xd_ble_state) {
         if(xd_ble_state == XD_BLE_OPEN) {
-            NSLog(@"蓝牙打开");
+            NSLog(@"BLE_OPEN");
         }else {
-            NSLog(@"蓝牙未打开");
+            NSLog(@"BLE_CLOSE");
         }
     } scanDevice:^(NSString *deviceName, BOOL *stop) {
         //deviceName实时扫描到的蓝牙名，stop是否停止扫描
         if ([deviceName isEqualToString:@"000091"]) {
             *stop = YES;
-            [ws.xdBle connectDeviceWithName:deviceName connectState:^(CONNECT_STATE connectState) {
+            [ws.xdBle.service(@"FFE1").notifyCharacter(@"FFE2").writeCharacter(@"FFE3") connectDeviceWithName:deviceName connectState:^(CONNECT_STATE connectState) {
                 if(connectState == CONNECT_SUCCESS) {
                     //发送数据
                     [ws.xdBle writeData:[ws convertHexStrToData:@"1234567890"] notifyValue:^(NSData *value) {
@@ -48,6 +48,9 @@
     } scanDeviceNames:^(NSArray *devices) {
         //扫描结束所有的蓝牙设备
         NSLog(@"%@",devices);
+        if (![devices containsObject:@"000091"]) {
+            NSLog(@"未找到相应的设备");
+        }
     }];
 }
 

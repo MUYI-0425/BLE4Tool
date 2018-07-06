@@ -3,7 +3,7 @@
 //  BLEDemo
 //
 //  Created by apple on 2018/6/21.
-//  Copyright © 2018年 孙晓东. All rights reserved.
+//  Copyright © 2018年 SXD. All rights reserved.
 //
 
 #import "XDBLE.h"
@@ -55,7 +55,9 @@ typedef NS_ENUM(NSInteger,SCAN_STATE) {
  */
 @property (nonatomic,assign)BOOL isScan;
 
-
+@property (nonatomic,copy)NSString *serviceString;
+@property (nonatomic,copy)NSString *notifyCHString;
+@property (nonatomic,copy)NSString *writeCHString;
 /**
  写特征
  */
@@ -118,36 +120,42 @@ typedef NS_ENUM(NSInteger,SCAN_STATE) {
 }
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(nullable NSError *)error {
     self.innerConnectState = CONNECT_FAILED;
-    
 }
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(nullable NSError *)error {
     self.innerConnectState = DIS_CONNECT;
     
 }
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
+   
     for (CBService *service in peripheral.services) {
-        if ([service.UUID isEqual:[CBUUID UUIDWithString:SERVICE]]) {
+        
+        if([service.UUID isEqual:[CBUUID UUIDWithString:self.serviceString]]) {
             [peripheral discoverCharacteristics:nil forService:service];
         }
+        
+
     }
 }
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
     
     for (CBCharacteristic *character in service.characteristics) {
         
-        if ([character.UUID isEqual:[CBUUID UUIDWithString:READCHARACTER]]) {
-            
-            [peripheral setNotifyValue:YES forCharacteristic:character];
-            
-        }
         
-        if ([character.UUID isEqual:[CBUUID UUIDWithString:WRITECHARACTER]]) {
+        if ([character.UUID isEqual:[CBUUID UUIDWithString:self.notifyCHString]]) {
+
+            [peripheral setNotifyValue:YES forCharacteristic:character];
+
+        }
+
+        if ([character.UUID isEqual:[CBUUID UUIDWithString:self.writeCHString]]) {
 
             self.writeC = character;
-            
+
         }
         
     }
+    
+    
 }
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     
@@ -194,6 +202,10 @@ typedef NS_ENUM(NSInteger,SCAN_STATE) {
         bleState(XD_BLE_CLOSE);
         return;
     }
+    //连接状态直接返回
+    if (self.innerConnectState == CONNECT_SUCCESS) {
+        return;
+    }
     
     [self.devicesNameDIC removeAllObjects];
     
@@ -228,6 +240,26 @@ typedef NS_ENUM(NSInteger,SCAN_STATE) {
     }
 }
 
+- (XDBLE *(^)(NSString *))service {
+    return ^(NSString *serviceString){
+        self.serviceString = serviceString;
+        return self;
+    };
+}
+
+- (XDBLE *(^)(NSString *))notifyCharacter {
+    return ^(NSString *notifyCharacterString){
+        self.notifyCHString = notifyCharacterString;
+        return self;
+    };
+}
+
+- (XDBLE *(^)(NSString *))writeCharacter {
+    return ^(NSString *writeCharacterString){
+        self.writeCHString = writeCharacterString;
+        return self;
+    };
+}
 
 /**
  根据名字连接设备

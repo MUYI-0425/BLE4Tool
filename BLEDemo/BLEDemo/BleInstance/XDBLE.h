@@ -3,14 +3,10 @@
 //  BLEDemo
 //
 //  Created by apple on 2018/6/21.
-//  Copyright © 2018年 孙晓东. All rights reserved.
+//  Copyright © 2018年 SXD. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
-
-#define SERVICE @"FF00" //服务特征
-#define WRITECHARACTER @"FF01" //写特征
-#define READCHARACTER @"FF02"  //读特征
 
 /**
  扫描结束后所有蓝牙集合
@@ -73,6 +69,12 @@ typedef void(^ConnectState)(CONNECT_STATE connectState);
 typedef void(^NotifyValue)(NSData *value);
 
 @interface XDBLE : NSObject
+
+@property (nonatomic,copy,readonly)XDBLE *(^service)(NSString *serviceString);
+
+@property (nonatomic,copy,readonly)XDBLE *(^notifyCharacter)(NSString *notifyCharacterString);
+
+@property (nonatomic,copy,readonly)XDBLE *(^writeCharacter)(NSString *writeCharacterString);
 /**
  连接状态
  */
@@ -99,6 +101,7 @@ typedef void(^NotifyValue)(NSData *value);
                        bleState:(BleState)bleState
                      scanDevice:(RealDevice)scanRealDevice
                 scanDeviceNames:(DeviceNames)devices;
+
 
 /**
  根据名字连接设备
